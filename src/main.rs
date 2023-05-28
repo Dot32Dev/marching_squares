@@ -1,9 +1,31 @@
 use bevy::{prelude::*, sprite::MaterialMesh2dBundle};
 use bevy::render::mesh::{self, PrimitiveTopology, Indices};
-use noise::{NoiseFn, Simplex, Perlin};
+use bevy::sprite::Mesh2dHandle;
+use bevy_egui::{egui, EguiContexts, EguiPlugin};
+
+mod generate_tiles;
+use generate_tiles::generate_tiles;
+
+#[derive(Default, Resource)]
+struct UiState {
+    detail_level: u32,
+    z_value: f32,
+    lerped: bool,
+    animate: bool,
+}
+
+#[derive(Component)]
+struct MarchingSquares;
 
 fn main() {
     App::new()
+        // .init_resource::<UiState>()
+        .insert_resource(UiState {
+            detail_level: 10,
+            z_value: 0.0,
+            lerped: true,
+            animate: false,
+        })
         .add_plugins(DefaultPlugins.set(WindowPlugin {
             primary_window: Some(Window {
                 title: "Marching Squares".into(),
@@ -11,7 +33,10 @@ fn main() {
             }),
             ..default()
         }))
+        .add_plugin(EguiPlugin)
         .add_startup_system(setup)
+        .add_system(ui_example_system)
+        .add_system(marching_squares_system)
         .run();
 }
 
@@ -22,334 +47,7 @@ fn setup(
 ) {
     commands.spawn(Camera2dBundle::default());
 
-    let simplex = Simplex::new(1);
-
-    let square_size = 10.0;
-    let rows = 60;
-    let cols = 60;
-
-    // Create a 2D vector of squares
-    let mut grid = vec![vec![0.0; cols + 1]; rows + 1];
-
-    for row in 0..=rows {
-        for col in 0..=cols {
-            let x = col as f32 * square_size - (cols as f32 * square_size) / 2.;
-            let y = row as f32 * square_size - (rows as f32 * square_size) / 2.;
-
-            let noise = simplex.get([x as f64 * 0.007, y as f64 * 0.007, 200.0]) as f32 + 0.5;
-
-            grid[row][col] = noise;
-
-            // commands.spawn(MaterialMesh2dBundle {
-            //     mesh: meshes.add(shape::Circle::new(square_size*0.1).into()).into(),
-            //     material: materials.add(ColorMaterial::from(Color::rgb(noise, noise, noise))),
-            //     transform: Transform::from_translation(Vec3::new(x, y, 0.1)),
-            //     ..default()
-            // });
-        }
-    }
-
-    let mut positions: Vec<[f32; 3]> = Vec::new();
-    let mut normals: Vec<[f32; 3]> = Vec::new();
-    let mut uvs: Vec<[f32; 2]> = Vec::new();
-    let mut indices: Vec<u32> = Vec::new();
-
-    // Iterate over 4 grid points at a time
-    for row in 0..rows {
-        for col in 0..cols {
-            // let value = (grid[row][col]*8.0 + grid[row][col + 1]*4.0 + grid[row + 1][col + 1]*2.0 + grid[row + 1][col]*1.0) as u8;
-            let value = ((grid[row][col]+0.5).floor()*8.0 + (grid[row][col + 1]+0.5).floor()*4.0 + (grid[row + 1][col + 1]+0.5).floor()*2.0 + (grid[row + 1][col]+0.5).floor()*1.0) as u8;
-            
-            let left_x = col as f32 * square_size - (cols as f32 * square_size) / 2.;
-            let top_y = row as f32 * square_size - (rows as f32 * square_size) / 2.;
-
-            let right_x = left_x + square_size;
-            let bottom_y = top_y + square_size;
-
-            let top = inverse_lerp(grid[row][col], grid[row][col + 1], 0.5);
-            let right = inverse_lerp(grid[row][col + 1], grid[row + 1][col + 1], 0.5);
-            let bottom = inverse_lerp(grid[row + 1][col], grid[row + 1][col + 1], 0.5);
-            let left = inverse_lerp(grid[row][col], grid[row + 1][col], 0.5);
-
-            if value == 12 {
-                println!("{} {} {} {}", top, right, bottom, left);
-                println!("Top left value, top right value, bottom right value, bottom left value: {} {} {} {}", grid[row][col], grid[row][col + 1], grid[row + 1][col + 1], grid[row + 1][col]);
-            }
-
-            match value {
-                0 => {}
-                1 => {
-                    // Top left corner
-                    positions.push([left_x, top_y + square_size*left, 0.0]);
-                    positions.push([left_x, bottom_y, 0.0]);
-                    positions.push([left_x + square_size*bottom, bottom_y, 0.0]);
-
-                    for _ in 0..3 {
-                        normals.push([0.0, 0.0, 1.0]);
-                        uvs.push([0.0, 0.0]);
-                    }
-
-                    indices.push((positions.len() - 3) as u32);
-                    indices.push((positions.len() - 2) as u32);
-                    indices.push((positions.len() - 1) as u32);
-                }
-                2 => {
-                    // Top right corner
-                    positions.push([left_x + square_size*bottom, bottom_y, 0.0]);
-                    positions.push([right_x, top_y + square_size*right, 0.0]);
-                    positions.push([right_x, bottom_y, 0.0]);
-
-                    for _ in 0..3 {
-                        normals.push([0.0, 0.0, 1.0]);
-                        uvs.push([0.0, 0.0]);
-                    }
-
-                    indices.push((positions.len() - 3) as u32);
-                    indices.push((positions.len() - 2) as u32);
-                    indices.push((positions.len() - 1) as u32);
-                }
-                3 => {
-                    // Top rectangle
-                    positions.push([left_x, top_y + square_size*left, 0.0]);
-                    positions.push([right_x, top_y + square_size*right, 0.0]);
-                    positions.push([right_x, bottom_y, 0.0]);
-                    positions.push([left_x, bottom_y, 0.0]);
-
-                    for _ in 0..4 {
-                        normals.push([0.0, 0.0, 1.0]);
-                        uvs.push([0.0, 0.0]);
-                    }
-
-                    indices.push((positions.len() - 4) as u32);
-                    indices.push((positions.len() - 3) as u32);
-                    indices.push((positions.len() - 2) as u32);
-                    indices.push((positions.len() - 4) as u32);
-                    indices.push((positions.len() - 2) as u32);
-                    indices.push((positions.len() - 1) as u32);
-                }
-                4 => {
-                    // Bottom right corner
-                    positions.push([right_x, top_y, 0.0]);
-                    positions.push([right_x, top_y + square_size*right, 0.0]);
-                    positions.push([left_x + square_size*top, top_y, 0.0]);
-
-                    for _ in 0..3 {
-                        normals.push([0.0, 0.0, 1.0]);
-                        uvs.push([0.0, 0.0]);
-                    }
-
-                    indices.push((positions.len() - 3) as u32);
-                    indices.push((positions.len() - 2) as u32);
-                    indices.push((positions.len() - 1) as u32);
-                }
-                5 => {
-                    // Beam from top left to bottom right
-                }
-                6 => {
-                    // Right rectangle
-                    positions.push([left_x + square_size*top, top_y, 0.0]);
-                    positions.push([right_x, top_y, 0.0]);
-                    positions.push([right_x, bottom_y, 0.0]);
-                    positions.push([left_x + square_size*bottom, bottom_y, 0.0]);
-
-                    for _ in 0..4 {
-                        normals.push([0.0, 0.0, 1.0]);
-                        uvs.push([0.0, 0.0]);
-                    }
-
-                    indices.push((positions.len() - 4) as u32);
-                    indices.push((positions.len() - 3) as u32);
-                    indices.push((positions.len() - 2) as u32);
-                    indices.push((positions.len() - 4) as u32);
-                    indices.push((positions.len() - 2) as u32);
-                    indices.push((positions.len() - 1) as u32);
-                }
-                7 => {
-                    // The opposite of the bottom left corner, made from 3 triangles
-                    positions.push([left_x, bottom_y, 0.0]); // Top left
-                    positions.push([right_x, bottom_y, 0.0]); // Top right
-                    positions.push([right_x, top_y, 0.0]); // Bottom right
-                    positions.push([left_x + square_size*top, top_y, 0.0]); // Bottom center
-                    positions.push([left_x, top_y + square_size*left, 0.0]); // Center left
-
-                    for _ in 0..5 {
-                        normals.push([0.0, 0.0, 1.0]);
-                        uvs.push([0.0, 0.0]);
-                    }
-
-                    // Triangle 1
-                    indices.push((positions.len() - 5) as u32);
-                    indices.push((positions.len() - 4) as u32);
-                    indices.push((positions.len() - 3) as u32);
-                    // Triangle 2
-                    indices.push((positions.len() - 5) as u32);
-                    indices.push((positions.len() - 3) as u32);
-                    indices.push((positions.len() - 2) as u32);
-                    // Triangle 3
-                    indices.push((positions.len() - 5) as u32);
-                    indices.push((positions.len() - 2) as u32);
-                    indices.push((positions.len() - 1) as u32);
-                }
-                8 => {
-                    // Bottom left corner
-                    positions.push([left_x, top_y, 0.0]);
-                    positions.push([left_x + square_size*top, top_y, 0.0]);
-                    positions.push([left_x, top_y + square_size*left, 0.0]);
-
-                    for _ in 0..3 {
-                        normals.push([0.0, 0.0, 1.0]);
-                        uvs.push([0.0, 0.0]);
-                    }
-
-                    indices.push((positions.len() - 3) as u32);
-                    indices.push((positions.len() - 2) as u32);
-                    indices.push((positions.len() - 1) as u32);
-                }
-                9 => {
-                    // Left rectangle
-                    positions.push([left_x, top_y, 0.0]);
-                    positions.push([left_x + square_size*top, top_y, 0.0]);
-                    positions.push([left_x + square_size*bottom, bottom_y, 0.0]);
-                    positions.push([left_x, bottom_y, 0.0]);
-
-                    for _ in 0..4 {
-                        normals.push([0.0, 0.0, 1.0]);
-                        uvs.push([0.0, 0.0]);
-                    }
-
-                    indices.push((positions.len() - 4) as u32);
-                    indices.push((positions.len() - 3) as u32);
-                    indices.push((positions.len() - 2) as u32);
-                    indices.push((positions.len() - 4) as u32);
-                    indices.push((positions.len() - 2) as u32);
-                    indices.push((positions.len() - 1) as u32);
-                }
-                10 => {
-                    // Beamn from top right to bottom left
-                }
-                11 => {
-                    // The opposite of the bottom right corner, made from 3 triangles
-                    positions.push([right_x, bottom_y, 0.0]); // Top right
-                    positions.push([left_x, bottom_y, 0.0]); // Top left
-                    positions.push([left_x, top_y, 0.0]); // Bottom left
-                    positions.push([left_x + square_size*top, top_y, 0.0]); // Bottom center
-                    positions.push([right_x, top_y + square_size*right, 0.0]); // Center right
-                    
-
-                    for _ in 0..5 {
-                        normals.push([0.0, 0.0, 1.0]);
-                        uvs.push([0.0, 0.0]);
-                    }
-
-                    // Triangle 1
-                    indices.push((positions.len() - 5) as u32);
-                    indices.push((positions.len() - 4) as u32);
-                    indices.push((positions.len() - 3) as u32);
-                    // Triangle 2
-                    indices.push((positions.len() - 5) as u32);
-                    indices.push((positions.len() - 3) as u32);
-                    indices.push((positions.len() - 2) as u32);
-                    // Triangle 3
-                    indices.push((positions.len() - 5) as u32);
-                    indices.push((positions.len() - 2) as u32);
-                    indices.push((positions.len() - 1) as u32);                  
-                }
-                12 => {
-                    // Bottom rectangle
-                    positions.push([right_x, top_y + square_size*right, 0.0]); // right
-                    positions.push([left_x, top_y + square_size*left, 0.0]); // left
-                    positions.push([left_x, top_y, 0.0]);
-                    positions.push([right_x, top_y, 0.0]);
-
-                    for _ in 0..4 {
-                        normals.push([0.0, 0.0, 1.0]);
-                        uvs.push([0.0, 0.0]);
-                    }
-
-                    indices.push((positions.len() - 4) as u32);
-                    indices.push((positions.len() - 3) as u32);
-                    indices.push((positions.len() - 2) as u32);
-                    indices.push((positions.len() - 4) as u32);
-                    indices.push((positions.len() - 2) as u32);
-                    indices.push((positions.len() - 1) as u32);
-                }
-                13 => {
-                    // Opposite of the top left corner, made from 3 triangles
-                    positions.push([right_x, top_y, 0.0]); // Bottom right
-                    positions.push([left_x, top_y, 0.0]); // Bottom left
-                    positions.push([left_x, bottom_y, 0.0]); // Top left
-                    positions.push([left_x + square_size*bottom, bottom_y, 0.0]); // Top center
-                    positions.push([right_x, top_y + square_size*right, 0.0]); // Center right
-
-                    for _ in 0..5 {
-                        normals.push([0.0, 0.0, 1.0]);
-                        uvs.push([0.0, 0.0]);
-                    }
-
-                    // Triangle 1
-                    indices.push((positions.len() - 5) as u32);
-                    indices.push((positions.len() - 4) as u32);
-                    indices.push((positions.len() - 3) as u32);
-                    // Triangle 2
-                    indices.push((positions.len() - 5) as u32);
-                    indices.push((positions.len() - 3) as u32);
-                    indices.push((positions.len() - 2) as u32);
-                    // Triangle 3
-                    indices.push((positions.len() - 5) as u32);
-                    indices.push((positions.len() - 2) as u32);
-                    indices.push((positions.len() - 1) as u32);
-                }
-                14 => {
-                    // The opposite of the top left corner, made from 3 triangles
-                    positions.push([left_x, top_y, 0.0]); // bottom left
-                    positions.push([right_x, top_y, 0.0]); // bottom right
-                    positions.push([right_x, bottom_y, 0.0]); // top right
-                    positions.push([left_x + square_size*bottom, bottom_y, 0.0]); // top center
-                    positions.push([left_x, top_y + square_size*left, 0.0]); // Center left
-
-                    for _ in 0..5 {
-                        normals.push([0.0, 0.0, 1.0]);
-                        uvs.push([0.0, 0.0]);
-                    }
-
-                    // Triangle 1
-                    indices.push((positions.len() - 5) as u32);
-                    indices.push((positions.len() - 4) as u32);
-                    indices.push((positions.len() - 3) as u32);
-                    // Triangle 2
-                    indices.push((positions.len() - 5) as u32);
-                    indices.push((positions.len() - 3) as u32);
-                    indices.push((positions.len() - 2) as u32);
-                    // Triangle 3
-                    indices.push((positions.len() - 5) as u32);
-                    indices.push((positions.len() - 2) as u32);
-                    indices.push((positions.len() - 1) as u32);
-                }
-                15 => {
-                    //Square
-                    positions.push([left_x, top_y, 0.0]);
-                    positions.push([right_x, top_y, 0.0]);
-                    positions.push([right_x, bottom_y, 0.0]);
-                    positions.push([left_x, bottom_y, 0.0]);
-
-                    for _ in 0..4 {
-                        normals.push([0.0, 0.0, 1.0]);
-                        uvs.push([0.0, 0.0]);
-                    }
-
-                    // Triangle1
-                    indices.push((positions.len() - 4) as u32);
-                    indices.push((positions.len() - 3) as u32);
-                    indices.push((positions.len() - 2) as u32);
-                    // Triangle2
-                    indices.push((positions.len() - 4) as u32);
-                    indices.push((positions.len() - 2) as u32);
-                    indices.push((positions.len() - 1) as u32);
-                }
-                _ => {}
-            };
-        }
-    }
+    let (positions, normals, uvs, indices) = generate_tiles(10.0, 0.0, true);
 
     let mut mesh = Mesh::new(PrimitiveTopology::TriangleList);
     mesh.insert_attribute(Mesh::ATTRIBUTE_POSITION, positions);
@@ -357,18 +55,68 @@ fn setup(
     mesh.insert_attribute(Mesh::ATTRIBUTE_UV_0, uvs);
     mesh.set_indices(Some(Indices::U32(indices)));
 
-    commands.spawn(MaterialMesh2dBundle {
-        mesh: meshes.add(mesh).into(),
-        transform: Transform::from_xyz(0.0, 0.0, 0.0),
-        material: materials.add(Color::WHITE.into()),
-        ..default()
-    });
+    commands.spawn((
+        MaterialMesh2dBundle {
+            mesh: meshes.add(mesh).into(),
+            transform: Transform::from_xyz(0.0, 0.0, 0.0),
+            material: materials.add(Color::WHITE.into()),
+            ..default()
+        }, 
+        MarchingSquares,
+    ));
 }
 
-fn inverse_lerp(a: f32, b: f32, value: f32) -> f32 {
-    if a == b {
-        return 0.0;
-    }
+fn ui_example_system(
+    mut contexts: EguiContexts,
+    mut ui_state: ResMut<UiState>,
+) {
+    egui::Window::new("Settings").show(contexts.ctx_mut(), |ui| {
+        // ui.label("Grid Size");
+        ui.add(egui::Slider::new(&mut ui_state.detail_level, 3..=50).text("Grid Size (Lower is better)"));
+        // ui.label("Z Value");
+        ui.add(egui::Slider::new(&mut ui_state.z_value, 0.0..=100.0).text("Z Coordinate"));
+        // ui.label("Lerped or midpoint");
+        ui.checkbox(&mut ui_state.lerped, "Lerped");
+        ui.checkbox(&mut ui_state.animate, "Animate");
+    });
 
-    return (value - a) / (b - a);
+    if ui_state.animate {
+        ui_state.z_value += 0.01;
+    }
+}
+
+fn marching_squares_system(
+    ui_state: Res<UiState>,
+    mut marching_squares_meshes: Query<&mut Mesh2dHandle, With<MarchingSquares>>,
+    mut meshes: ResMut<Assets<Mesh>>,
+) {
+    // println!("marching_squares_meshes: {:?}", marching_squares_meshes.iter().len());
+    if ui_state.is_changed() {
+        for mut mesh_handle in marching_squares_meshes.iter_mut() {
+            println!("Updating mesh");
+            // let mut mesh = meshes.get_mut(mesh_handle);
+            // if mesh.is_some() {
+            //     let (positions, normals, uvs, indices) = generate_tiles(ui_state.detail_level as f32, ui_state.z_value as f32, ui_state.lerped);
+                
+            //     let mut new_mesh = Mesh::new(PrimitiveTopology::TriangleList);
+            //     new_mesh.insert_attribute(Mesh::ATTRIBUTE_POSITION, positions);
+            //     new_mesh.insert_attribute(Mesh::ATTRIBUTE_NORMAL, normals);
+            //     new_mesh.insert_attribute(Mesh::ATTRIBUTE_UV_0, uvs);
+            //     new_mesh.set_indices(Some(Indices::U32(indices)));
+
+            //     mesh = Some(&mut new_mesh);
+
+            //     println!("Updated mesh")
+            // }
+            let (positions, normals, uvs, indices) = generate_tiles(ui_state.detail_level as f32, ui_state.z_value as f32, ui_state.lerped);
+                
+            let mut new_mesh = Mesh::new(PrimitiveTopology::TriangleList);
+            new_mesh.insert_attribute(Mesh::ATTRIBUTE_POSITION, positions);
+            new_mesh.insert_attribute(Mesh::ATTRIBUTE_NORMAL, normals);
+            new_mesh.insert_attribute(Mesh::ATTRIBUTE_UV_0, uvs);
+            new_mesh.set_indices(Some(Indices::U32(indices)));
+
+            *mesh_handle = meshes.add(new_mesh).into();
+        }
+    }
 }
