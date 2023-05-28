@@ -69,9 +69,10 @@ fn setup(
 fn ui_example_system(
     mut contexts: EguiContexts,
     mut ui_state: ResMut<UiState>,
+    time: Res<Time>,
 ) {
     egui::Window::new("Settings").show(contexts.ctx_mut(), |ui| {
-        // ui.label("Grid Size");
+        ui.label(format!("FPS: {}", (1.0 / Time::delta_seconds(&time)).floor()));
         ui.add(egui::Slider::new(&mut ui_state.detail_level, 3..=50).text("Grid Size (Lower is better)"));
         // ui.label("Z Value");
         ui.add(egui::Slider::new(&mut ui_state.z_value, 0.0..=100.0).text("Z Coordinate"));

@@ -63,10 +63,18 @@ pub fn generate_tiles(
 			let right_x = left_x + square_size;
 			let bottom_y = top_y + square_size;
 
-			let top = inverse_lerp(grid[row][col], grid[row][col + 1], 0.5);
-			let right = inverse_lerp(grid[row][col + 1], grid[row + 1][col + 1], 0.5);
-			let bottom = inverse_lerp(grid[row + 1][col], grid[row + 1][col + 1], 0.5);
-			let left = inverse_lerp(grid[row][col], grid[row + 1][col], 0.5);
+			let mut top = inverse_lerp(grid[row][col], grid[row][col + 1], 0.5);
+			let mut right = inverse_lerp(grid[row][col + 1], grid[row + 1][col + 1], 0.5);
+			let mut bottom = inverse_lerp(grid[row + 1][col], grid[row + 1][col + 1], 0.5);
+			let mut left = inverse_lerp(grid[row][col], grid[row + 1][col], 0.5);
+
+			if !lerped {
+				// If not lerped, the top, right, bottom, and left values are set to 0.5
+				top = 0.5;
+				right = 0.5;
+				bottom = 0.5;
+				left = 0.5;
+			}
 
 			match value {
 				0 => {}
