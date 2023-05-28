@@ -80,9 +80,9 @@ fn setup(
                 0 => {}
                 1 => {
                     // Top left corner
-                    positions.push([left_x, top_y + square_size/2.0, 0.0]);
+                    positions.push([left_x, top_y + square_size*left, 0.0]);
                     positions.push([left_x, bottom_y, 0.0]);
-                    positions.push([right_x - square_size/2.0, bottom_y, 0.0]);
+                    positions.push([left_x + square_size*bottom, bottom_y, 0.0]);
 
                     for _ in 0..3 {
                         normals.push([0.0, 0.0, 1.0]);
@@ -95,8 +95,8 @@ fn setup(
                 }
                 2 => {
                     // Top right corner
-                    positions.push([left_x + square_size/2.0, bottom_y, 0.0]);
-                    positions.push([right_x, top_y + square_size/2.0, 0.0]);
+                    positions.push([left_x + square_size*bottom, bottom_y, 0.0]);
+                    positions.push([right_x, top_y + square_size*right, 0.0]);
                     positions.push([right_x, bottom_y, 0.0]);
 
                     for _ in 0..3 {
@@ -130,8 +130,8 @@ fn setup(
                 4 => {
                     // Bottom right corner
                     positions.push([right_x, top_y, 0.0]);
-                    positions.push([right_x, top_y + square_size/2.0, 0.0]);
-                    positions.push([left_x + square_size/2.0, top_y, 0.0]);
+                    positions.push([right_x, top_y + square_size*right, 0.0]);
+                    positions.push([left_x + square_size*top, top_y, 0.0]);
 
                     for _ in 0..3 {
                         normals.push([0.0, 0.0, 1.0]);
@@ -169,8 +169,8 @@ fn setup(
                     positions.push([left_x, bottom_y, 0.0]); // Top left
                     positions.push([right_x, bottom_y, 0.0]); // Top right
                     positions.push([right_x, top_y, 0.0]); // Bottom right
-                    positions.push([left_x + square_size/2.0, top_y, 0.0]); // Bottom center
-                    positions.push([left_x, top_y + square_size/2.0, 0.0]); // Center left
+                    positions.push([left_x + square_size*top, top_y, 0.0]); // Bottom center
+                    positions.push([left_x, top_y + square_size*left, 0.0]); // Center left
 
                     for _ in 0..5 {
                         normals.push([0.0, 0.0, 1.0]);
@@ -193,8 +193,8 @@ fn setup(
                 8 => {
                     // Bottom left corner
                     positions.push([left_x, top_y, 0.0]);
-                    positions.push([left_x + square_size/2.0, top_y, 0.0]);
-                    positions.push([left_x, top_y + square_size/2.0, 0.0]);
+                    positions.push([left_x + square_size*top, top_y, 0.0]);
+                    positions.push([left_x, top_y + square_size*left, 0.0]);
 
                     for _ in 0..3 {
                         normals.push([0.0, 0.0, 1.0]);
@@ -232,8 +232,8 @@ fn setup(
                     positions.push([right_x, bottom_y, 0.0]); // Top right
                     positions.push([left_x, bottom_y, 0.0]); // Top left
                     positions.push([left_x, top_y, 0.0]); // Bottom left
-                    positions.push([left_x + square_size/2.0, top_y, 0.0]); // Bottom center
-                    positions.push([right_x, top_y + square_size/2.0, 0.0]); // Center right
+                    positions.push([left_x + square_size*top, top_y, 0.0]); // Bottom center
+                    positions.push([right_x, top_y + square_size*right, 0.0]); // Center right
                     
 
                     for _ in 0..5 {
@@ -278,8 +278,8 @@ fn setup(
                     positions.push([right_x, top_y, 0.0]); // Bottom right
                     positions.push([left_x, top_y, 0.0]); // Bottom left
                     positions.push([left_x, bottom_y, 0.0]); // Top left
-                    positions.push([left_x + square_size/2.0, bottom_y, 0.0]); // Top center
-                    positions.push([right_x, top_y + square_size/2.0, 0.0]); // Center right
+                    positions.push([left_x + square_size*bottom, bottom_y, 0.0]); // Top center
+                    positions.push([right_x, top_y + square_size*right, 0.0]); // Center right
 
                     for _ in 0..5 {
                         normals.push([0.0, 0.0, 1.0]);
@@ -304,8 +304,8 @@ fn setup(
                     positions.push([left_x, top_y, 0.0]); // bottom left
                     positions.push([right_x, top_y, 0.0]); // bottom right
                     positions.push([right_x, bottom_y, 0.0]); // top right
-                    positions.push([left_x + square_size/2.0, bottom_y, 0.0]); // top center
-                    positions.push([left_x, top_y + square_size/2.0, 0.0]); // Center left
+                    positions.push([left_x + square_size*bottom, bottom_y, 0.0]); // top center
+                    positions.push([left_x, top_y + square_size*left, 0.0]); // Center left
 
                     for _ in 0..5 {
                         normals.push([0.0, 0.0, 1.0]);
@@ -364,17 +364,6 @@ fn setup(
         ..default()
     });
 }
-
-// export function getT(f1, f2, isovalue) {
-//     const v2 = Math.max(f2.v, f1.v);
-//     const v1 = Math.min(f2.v, f1.v);
-//     return (isovalue - v1) / (v2 - v1);
-// }
-// fn get_t(f1: f32, f2: f32, isovalue: f32) -> f32 {
-//     let v2 = f1.max(f2);
-//     let v1 = f1.min(f2);
-//     (isovalue - v1) / (v2 - v1)
-// }
 
 fn inverse_lerp(a: f32, b: f32, value: f32) -> f32 {
     if a == b {
