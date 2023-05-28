@@ -36,15 +36,14 @@ fn setup(
             let x = col as f32 * square_size - (cols as f32 * square_size) / 2.;
             let y = row as f32 * square_size - (rows as f32 * square_size) / 2.;
 
-            let mut noise = simplex.get([x as f64 * 0.003, y as f64 * 0.003, 100.0]) as f32 + 0.45;
-            noise = (noise + 0.5).floor();
+            let noise = simplex.get([x as f64 * 0.003, y as f64 * 0.003, 100.0]) as f32 + 0.45;
 
             grid[row][col] = noise;
 
             commands.spawn(MaterialMesh2dBundle {
                 mesh: meshes.add(shape::Circle::new(square_size*0.2).into()).into(),
                 material: materials.add(ColorMaterial::from(Color::rgb(noise, noise, noise))),
-                transform: Transform::from_translation(Vec3::new(x, y, 0.)),
+                transform: Transform::from_translation(Vec3::new(x, y, 0.1)),
                 ..default()
             });
         }
@@ -58,18 +57,9 @@ fn setup(
     // Iterate over 4 grid points at a time
     for row in 0..rows {
         for col in 0..cols {
-            let value = (grid[row][col]*8.0 + grid[row][col + 1]*4.0 + grid[row + 1][col + 1]*2.0 + grid[row + 1][col]*1.0) as u8;
-            // if value == 15.0 {
-            //     let x = col as f32 * square_size - (cols as f32 * square_size) / 2. + square_size/2.;
-            //     let y = row as f32 * square_size - (rows as f32 * square_size) / 2. + square_size/2.;
-
-            //     commands.spawn(MaterialMesh2dBundle {
-            //         mesh: meshes.add(shape::Quad::new(Vec2::new(square_size, square_size).into()).into()).into(),
-            //         material: materials.add(ColorMaterial::from(Color::WHITE)),
-            //         transform: Transform::from_translation(Vec3::new(x, y, 0.)),
-            //         ..default()
-            //     });
-            // }
+            // let value = (grid[row][col]*8.0 + grid[row][col + 1]*4.0 + grid[row + 1][col + 1]*2.0 + grid[row + 1][col]*1.0) as u8;
+            let value = ((grid[row][col]+0.5).floor()*8.0 + (grid[row][col + 1]+0.5).floor()*4.0 + (grid[row + 1][col + 1]+0.5).floor()*2.0 + (grid[row + 1][col]+0.5).floor()*1.0) as u8;
+            
             let left_x = col as f32 * square_size - (cols as f32 * square_size) / 2.;
             let top_y = row as f32 * square_size - (rows as f32 * square_size) / 2.;
 
@@ -359,7 +349,7 @@ fn setup(
 
     commands.spawn(MaterialMesh2dBundle {
         mesh: meshes.add(mesh).into(),
-        transform: Transform::from_xyz(0.0, 0.0, 1.0),
+        transform: Transform::from_xyz(0.0, 0.0, 0.0),
         material: materials.add(Color::WHITE.into()),
         ..default()
     });
