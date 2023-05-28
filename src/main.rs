@@ -66,6 +66,16 @@ fn setup(
             let right_x = left_x + square_size;
             let bottom_y = top_y + square_size;
 
+            let top = inverse_lerp(grid[row][col], grid[row][col + 1], 0.5);
+            let right = inverse_lerp(grid[row][col + 1], grid[row + 1][col + 1], 0.5);
+            let bottom = inverse_lerp(grid[row + 1][col], grid[row + 1][col + 1], 0.5);
+            let left = inverse_lerp(grid[row][col], grid[row + 1][col], 0.5);
+
+            if value == 12 {
+                println!("{} {} {} {}", top, right, bottom, left);
+                println!("Top left value, top right value, bottom right value, bottom left value: {} {} {} {}", grid[row][col], grid[row][col + 1], grid[row + 1][col + 1], grid[row + 1][col]);
+            }
+
             match value {
                 0 => {}
                 1 => {
@@ -246,8 +256,8 @@ fn setup(
                 }
                 12 => {
                     // Bottom rectangle
-                    positions.push([right_x, bottom_y - square_size/2.0, 0.0]);
-                    positions.push([left_x, bottom_y - square_size/2.0, 0.0]);
+                    positions.push([right_x, top_y + square_size*right, 0.0]); // right
+                    positions.push([left_x, top_y + square_size*left, 0.0]); // left
                     positions.push([left_x, top_y, 0.0]);
                     positions.push([right_x, top_y, 0.0]);
 
@@ -353,4 +363,23 @@ fn setup(
         material: materials.add(Color::WHITE.into()),
         ..default()
     });
+}
+
+// export function getT(f1, f2, isovalue) {
+//     const v2 = Math.max(f2.v, f1.v);
+//     const v1 = Math.min(f2.v, f1.v);
+//     return (isovalue - v1) / (v2 - v1);
+// }
+// fn get_t(f1: f32, f2: f32, isovalue: f32) -> f32 {
+//     let v2 = f1.max(f2);
+//     let v1 = f1.min(f2);
+//     (isovalue - v1) / (v2 - v1)
+// }
+
+fn inverse_lerp(a: f32, b: f32, value: f32) -> f32 {
+    if a == b {
+        return 0.0;
+    }
+
+    return (value - a) / (b - a);
 }
