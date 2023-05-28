@@ -41,7 +41,7 @@ fn setup(
             grid[row][col] = noise;
 
             commands.spawn(MaterialMesh2dBundle {
-                mesh: meshes.add(shape::Circle::new(square_size*0.2).into()).into(),
+                mesh: meshes.add(shape::Circle::new(square_size*0.1).into()).into(),
                 material: materials.add(ColorMaterial::from(Color::rgb(noise, noise, noise))),
                 transform: Transform::from_translation(Vec3::new(x, y, 0.1)),
                 ..default()
@@ -110,8 +110,8 @@ fn setup(
                 }
                 3 => {
                     // Top rectangle
-                    positions.push([left_x, top_y + square_size/2.0, 0.0]);
-                    positions.push([right_x, top_y + square_size/2.0, 0.0]);
+                    positions.push([left_x, top_y + square_size*left, 0.0]);
+                    positions.push([right_x, top_y + square_size*right, 0.0]);
                     positions.push([right_x, bottom_y, 0.0]);
                     positions.push([left_x, bottom_y, 0.0]);
 
@@ -147,10 +147,10 @@ fn setup(
                 }
                 6 => {
                     // Right rectangle
-                    positions.push([left_x + square_size/2.0, top_y, 0.0]);
+                    positions.push([left_x + square_size*top, top_y, 0.0]);
                     positions.push([right_x, top_y, 0.0]);
                     positions.push([right_x, bottom_y, 0.0]);
-                    positions.push([left_x + square_size/2.0, bottom_y, 0.0]);
+                    positions.push([left_x + square_size*bottom, bottom_y, 0.0]);
 
                     for _ in 0..4 {
                         normals.push([0.0, 0.0, 1.0]);
@@ -208,8 +208,8 @@ fn setup(
                 9 => {
                     // Left rectangle
                     positions.push([left_x, top_y, 0.0]);
-                    positions.push([left_x + square_size/2.0, top_y, 0.0]);
-                    positions.push([left_x + square_size/2.0, bottom_y, 0.0]);
+                    positions.push([left_x + square_size*top, top_y, 0.0]);
+                    positions.push([left_x + square_size*bottom, bottom_y, 0.0]);
                     positions.push([left_x, bottom_y, 0.0]);
 
                     for _ in 0..4 {
