@@ -24,9 +24,9 @@ fn setup(
 
     let simplex = Simplex::new(1);
 
-    let square_size = 20.0;
-    let rows = 30;
-    let cols = 30;
+    let square_size = 10.0;
+    let rows = 60;
+    let cols = 60;
 
     // Create a 2D vector of squares
     let mut grid = vec![vec![0.0; cols + 1]; rows + 1];
@@ -36,16 +36,16 @@ fn setup(
             let x = col as f32 * square_size - (cols as f32 * square_size) / 2.;
             let y = row as f32 * square_size - (rows as f32 * square_size) / 2.;
 
-            let noise = simplex.get([x as f64 * 0.003, y as f64 * 0.003, 100.0]) as f32 + 0.45;
+            let noise = simplex.get([x as f64 * 0.007, y as f64 * 0.007, 200.0]) as f32 + 0.5;
 
             grid[row][col] = noise;
 
-            commands.spawn(MaterialMesh2dBundle {
-                mesh: meshes.add(shape::Circle::new(square_size*0.1).into()).into(),
-                material: materials.add(ColorMaterial::from(Color::rgb(noise, noise, noise))),
-                transform: Transform::from_translation(Vec3::new(x, y, 0.1)),
-                ..default()
-            });
+            // commands.spawn(MaterialMesh2dBundle {
+            //     mesh: meshes.add(shape::Circle::new(square_size*0.1).into()).into(),
+            //     material: materials.add(ColorMaterial::from(Color::rgb(noise, noise, noise))),
+            //     transform: Transform::from_translation(Vec3::new(x, y, 0.1)),
+            //     ..default()
+            // });
         }
     }
 
