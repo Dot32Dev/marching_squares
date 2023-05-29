@@ -3,8 +3,8 @@ use bevy::render::mesh::{self, PrimitiveTopology, Indices};
 use bevy::sprite::Mesh2dHandle;
 use bevy_egui::{egui, EguiContexts, EguiPlugin};
 
-mod generate_tiles;
-use generate_tiles::generate_tiles;
+mod generate_vertices;
+use generate_vertices::generate_vertices;
 
 #[derive(Default, Resource)]
 struct UiState {
@@ -47,7 +47,7 @@ fn setup(
 ) {
     commands.spawn(Camera2dBundle::default());
 
-    let (positions, normals, uvs, indices) = generate_tiles(10.0, 0.0, true);
+    let (positions, normals, uvs, indices) = generate_vertices(10.0, 0.0, true);
 
     let mut mesh = Mesh::new(PrimitiveTopology::TriangleList);
     mesh.insert_attribute(Mesh::ATTRIBUTE_POSITION, positions);
@@ -118,7 +118,7 @@ fn marching_squares_system(
 
             //     println!("Updated mesh")
             // }
-            let (positions, normals, uvs, indices) = generate_tiles(ui_state.detail_level as f32, ui_state.z_value as f32, ui_state.lerped);
+            let (positions, normals, uvs, indices) = generate_vertices(ui_state.detail_level as f32, ui_state.z_value as f32, ui_state.lerped);
                 
             let mut new_mesh = Mesh::new(PrimitiveTopology::TriangleList);
             new_mesh.insert_attribute(Mesh::ATTRIBUTE_POSITION, positions);

@@ -1,6 +1,6 @@
 use noise::{NoiseFn, Simplex, Perlin};
 
-pub fn generate_tiles(
+pub fn generate_vertices(
 	square_size: f32,
 	z_value: f32,
 	lerped: bool,
