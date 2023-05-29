@@ -55,10 +55,20 @@ fn setup(
     mesh.insert_attribute(Mesh::ATTRIBUTE_UV_0, uvs);
     mesh.set_indices(Some(Indices::U32(indices)));
 
+    commands.spawn(SpriteBundle {
+        sprite: Sprite {
+            color: Color::rgb(0.25, 0.25, 0.25),
+            custom_size: Some(Vec2::new(600.0, 600.0)),
+            ..default()
+        },
+        transform: Transform::from_translation(Vec3::new(0., 0., 0.)),
+        ..default()
+    });
+
     commands.spawn((
         MaterialMesh2dBundle {
             mesh: meshes.add(mesh).into(),
-            transform: Transform::from_xyz(0.0, 0.0, 0.0),
+            transform: Transform::from_xyz(0.0, 0.0, 0.1),
             material: materials.add(Color::WHITE.into()),
             ..default()
         }, 
