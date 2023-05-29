@@ -143,7 +143,29 @@ pub fn generate_tiles(
 					indices.push((positions.len() - 1) as u32);
 				}
 				5 => {
-					// Beam from top left to bottom right
+					// Top left AND bottom right corners
+					// Top left corner
+					positions.push([left_x, top_y + square_size*left, 0.0]);
+					positions.push([left_x, bottom_y, 0.0]);
+					positions.push([left_x + square_size*bottom, bottom_y, 0.0]);
+					// Bottom right corner
+					positions.push([right_x, top_y, 0.0]);
+					positions.push([right_x, top_y + square_size*right, 0.0]);
+					positions.push([left_x + square_size*top, top_y, 0.0]);
+
+					for _ in 0..6 {
+						normals.push([0.0, 0.0, 1.0]);
+						uvs.push([0.0, 0.0]);
+					}
+
+					// Top left corner
+					indices.push((positions.len() - 6) as u32);
+					indices.push((positions.len() - 5) as u32);
+					indices.push((positions.len() - 4) as u32);
+					// Bottom right corner
+					indices.push((positions.len() - 3) as u32);
+					indices.push((positions.len() - 2) as u32);
+					indices.push((positions.len() - 1) as u32);
 				}
 				6 => {
 					// Right rectangle
@@ -225,7 +247,29 @@ pub fn generate_tiles(
 					indices.push((positions.len() - 1) as u32);
 				}
 				10 => {
-					// Beamn from top right to bottom left
+					// Top right AND bottom left corners
+					// Top right corner
+					positions.push([left_x + square_size*bottom, bottom_y, 0.0]);
+					positions.push([right_x, top_y + square_size*right, 0.0]);
+					positions.push([right_x, bottom_y, 0.0]);
+					// Bottom left corner
+					positions.push([left_x, top_y, 0.0]);
+					positions.push([left_x + square_size*top, top_y, 0.0]);
+					positions.push([left_x, top_y + square_size*left, 0.0]);
+					
+					for _ in 0..6 {
+						normals.push([0.0, 0.0, 1.0]);
+						uvs.push([0.0, 0.0]);
+					}
+
+					// Top right corner
+					indices.push((positions.len() - 6) as u32);
+					indices.push((positions.len() - 5) as u32);
+					indices.push((positions.len() - 4) as u32);
+					// Bottom left corner
+					indices.push((positions.len() - 3) as u32);
+					indices.push((positions.len() - 2) as u32);
+					indices.push((positions.len() - 1) as u32);
 				}
 				11 => {
 					// The opposite of the bottom right corner, made from 3 triangles

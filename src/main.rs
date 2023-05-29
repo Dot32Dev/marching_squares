@@ -104,7 +104,6 @@ fn marching_squares_system(
     // println!("marching_squares_meshes: {:?}", marching_squares_meshes.iter().len());
     if ui_state.is_changed() {
         for mut mesh_handle in marching_squares_meshes.iter_mut() {
-            println!("Updating mesh");
             // let mut mesh = meshes.get_mut(mesh_handle);
             // if mesh.is_some() {
             //     let (positions, normals, uvs, indices) = generate_tiles(ui_state.detail_level as f32, ui_state.z_value as f32, ui_state.lerped);
