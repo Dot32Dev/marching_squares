@@ -1,7 +1,9 @@
+use bevy::ui;
 use bevy::{prelude::*, sprite::MaterialMesh2dBundle};
 use bevy::render::mesh::{self, PrimitiveTopology, Indices};
 use bevy::sprite::Mesh2dHandle;
 use bevy_egui::{egui, EguiContexts, EguiPlugin};
+use bevy_prototype_debug_lines::*;
 
 mod generate_vertices;
 use generate_vertices::generate_vertices;
@@ -13,6 +15,7 @@ struct UiState {
     lerped: bool,
     animate: bool,
     x_y_scale: f32,
+    wireframe: bool,
 }
 
 #[derive(Component)]
@@ -27,6 +30,7 @@ fn main() {
             lerped: true,
             animate: false,
             x_y_scale: 0.007,
+            wireframe: false,
         })
         .add_plugins(DefaultPlugins.set(WindowPlugin {
             primary_window: Some(Window {
@@ -36,6 +40,7 @@ fn main() {
             ..default()
         }))
         .add_plugin(EguiPlugin)
+        .add_plugin(DebugLinesPlugin::default())
         .add_startup_system(setup)
         .add_system(ui_example_system)
         .add_system(marching_squares_system)
@@ -92,6 +97,7 @@ fn ui_example_system(
         // ui.label("Lerped or midpoint");
         ui.checkbox(&mut ui_state.lerped, "Lerped");
         ui.checkbox(&mut ui_state.animate, "Animate");
+        ui.checkbox(&mut ui_state.wireframe, "Wireframe");
     });
 
     if ui_state.animate {
@@ -103,6 +109,7 @@ fn marching_squares_system(
     ui_state: Res<UiState>,
     mut marching_squares_meshes: Query<&mut Mesh2dHandle, With<MarchingSquares>>,
     mut meshes: ResMut<Assets<Mesh>>,
+    mut lines: ResMut<DebugLines>,
 ) {
     // println!("marching_squares_meshes: {:?}", marching_squares_meshes.iter().len());
     if ui_state.is_changed() {
@@ -123,6 +130,22 @@ fn marching_squares_system(
             // }
             let (positions, normals, uvs, indices) = generate_vertices(ui_state.detail_level as f32, ui_state.z_value as f32, ui_state.lerped, ui_state.x_y_scale);
                 
+            if ui_state.wireframe {
+                // Draw debug lines for every triangle (fake wireframe)
+                for i in 0..indices.len() / 3 {
+                    let i = i * 3;
+                    let a = positions[indices[i] as usize];
+                    let b = positions[indices[i + 1] as usize];
+                    let c = positions[indices[i + 2] as usize];
+                    // lines.line_colored(a.extend(0.1), b.extend(0.1), 0.1, Color::RED);
+                    // lines.line_colored(b.extend(0.1), c.extend(0.1), 0.1, Color::RED);
+                    // lines.line_colored(c.extend(0.1), a.extend(0.1), 0.1, Color::RED);
+                    lines.line_colored(Vec3::new(a[0], a[1], 0.1), Vec3::new(b[0], b[1], 0.1), 0.0, Color::BLACK);
+                    lines.line_colored(Vec3::new(b[0], b[1], 0.1), Vec3::new(c[0], c[1], 0.1), 0.0, Color::BLACK);
+                    lines.line_colored(Vec3::new(c[0], c[1], 0.1), Vec3::new(a[0], a[1], 0.1), 0.0, Color::BLACK);
+                }
+            }
+
             let mut new_mesh = Mesh::new(PrimitiveTopology::TriangleList);
             new_mesh.insert_attribute(Mesh::ATTRIBUTE_POSITION, positions);
             new_mesh.insert_attribute(Mesh::ATTRIBUTE_NORMAL, normals);
