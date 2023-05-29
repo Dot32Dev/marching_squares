@@ -8,3 +8,5 @@ If you would like to try this yourself, rather than trying to read my pile of sp
 by The Coding Train.
 When it comes to implementing Lerping (which is not covered in the video), you can use an [inverse lerp](https://www.gamedev.net/articles/programming/general-and-gameplay-programming/inverse-lerp-a-super-useful-yet-often-overlooked-function-r5230/)
 function with your two points' values as a and b, and your threshold as the "value" argument. It will return a `t` value, representing how far along the threshold is between your two values, that you can then use to move mesh points around. 
+
+I found [this project](https://github.com/JosePedroDias/rust_experiments/blob/main/bevy/src/shapes/circle.rs) useful in learning procedural mesh generation in general. The "positions" describe all of the vertices, and the indicies describe which vertices are used to create each triangle. This allows rendering a quad with only 4 vertices instead of 6, for example, as some vertices are reused. 
