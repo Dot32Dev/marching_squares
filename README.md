@@ -1,6 +1,6 @@
 # marching_squares
 
-<img width="1392" alt="Screenshot 2023-05-29 at 11 22 18" src="https://github.com/Dot32IsCool/marching_squares/assets/61964090/86e2cad6-7163-4ae9-b72d-45aa6fdd8ca4">
+<img width="1392" alt="Screenshot 2023-05-29 at 11 22 18" src="https://github.com/Dot32IsCool/marching_squares/assets/61964090/8eb7888a-b476-453f-99d3-7d51b26fa85f">
 
 Marching squares implemented in Bevy, with a mesh that updates every frame! Egui is used for an interactive settings menu.
 
