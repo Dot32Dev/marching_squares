@@ -49,18 +49,9 @@ fn main() {
 
 fn setup(
     mut commands: Commands,
-    mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<ColorMaterial>>,
 ) {
     commands.spawn(Camera2dBundle::default());
-
-    let (positions, normals, uvs, indices) = generate_vertices(10.0, 0.0, true, 0.007);
-
-    let mut mesh = Mesh::new(PrimitiveTopology::TriangleList);
-    mesh.insert_attribute(Mesh::ATTRIBUTE_POSITION, positions);
-    mesh.insert_attribute(Mesh::ATTRIBUTE_NORMAL, normals);
-    mesh.insert_attribute(Mesh::ATTRIBUTE_UV_0, uvs);
-    mesh.set_indices(Some(Indices::U32(indices)));
 
     commands.spawn(SpriteBundle {
         sprite: Sprite {
@@ -74,7 +65,6 @@ fn setup(
 
     commands.spawn((
         MaterialMesh2dBundle {
-            mesh: meshes.add(mesh).into(),
             transform: Transform::from_xyz(0.0, 0.0, 0.1),
             material: materials.add(Color::WHITE.into()),
             ..default()
