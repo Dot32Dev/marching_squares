@@ -1,9 +1,10 @@
 use noise::{NoiseFn, Simplex, Perlin};
 
 pub fn generate_vertices(
-	square_size: f32,
+	square_size: f32, // Detail level
 	z_value: f32,
 	lerped: bool,
+	x_y_scale: f32,
 ) -> (std::vec::Vec<[f32; 3]>, std::vec::Vec<[f32; 3]>, std::vec::Vec<[f32; 2]>, std::vec::Vec<u32>) {
 	let simplex = Simplex::new(1);
 
@@ -18,7 +19,7 @@ pub fn generate_vertices(
             let x = col as f32 * square_size - (cols as f32 * square_size) / 2.;
             let y = row as f32 * square_size - (rows as f32 * square_size) / 2.;
 
-            let noise = simplex.get([x as f64 * 0.007, y as f64 * 0.007, z_value as f64]) as f32 + 0.5;
+            let noise = simplex.get([x as f64 * x_y_scale as f64, y as f64 * x_y_scale as f64, z_value as f64]) as f32 + 0.5;
 
             grid[row][col] = noise;
 

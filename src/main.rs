@@ -12,6 +12,7 @@ struct UiState {
     z_value: f32,
     lerped: bool,
     animate: bool,
+    x_y_scale: f32,
 }
 
 #[derive(Component)]
@@ -25,6 +26,7 @@ fn main() {
             z_value: 0.0,
             lerped: true,
             animate: false,
+            x_y_scale: 0.007,
         })
         .add_plugins(DefaultPlugins.set(WindowPlugin {
             primary_window: Some(Window {
@@ -47,7 +49,7 @@ fn setup(
 ) {
     commands.spawn(Camera2dBundle::default());
 
-    let (positions, normals, uvs, indices) = generate_vertices(10.0, 0.0, true);
+    let (positions, normals, uvs, indices) = generate_vertices(10.0, 0.0, true, 0.007);
 
     let mut mesh = Mesh::new(PrimitiveTopology::TriangleList);
     mesh.insert_attribute(Mesh::ATTRIBUTE_POSITION, positions);
@@ -86,6 +88,7 @@ fn ui_example_system(
         ui.add(egui::Slider::new(&mut ui_state.detail_level, 3..=50).text("Grid Size (Lower is better)"));
         // ui.label("Z Value");
         ui.add(egui::Slider::new(&mut ui_state.z_value, 0.0..=100.0).text("Z Coordinate"));
+        ui.add(egui::Slider::new(&mut ui_state.x_y_scale, 0.001..=0.04).text("X/Y Scale (Zoom)"));
         // ui.label("Lerped or midpoint");
         ui.checkbox(&mut ui_state.lerped, "Lerped");
         ui.checkbox(&mut ui_state.animate, "Animate");
@@ -118,7 +121,7 @@ fn marching_squares_system(
 
             //     println!("Updated mesh")
             // }
-            let (positions, normals, uvs, indices) = generate_vertices(ui_state.detail_level as f32, ui_state.z_value as f32, ui_state.lerped);
+            let (positions, normals, uvs, indices) = generate_vertices(ui_state.detail_level as f32, ui_state.z_value as f32, ui_state.lerped, ui_state.x_y_scale);
                 
             let mut new_mesh = Mesh::new(PrimitiveTopology::TriangleList);
             new_mesh.insert_attribute(Mesh::ATTRIBUTE_POSITION, positions);
